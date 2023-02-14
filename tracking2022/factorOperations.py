@@ -102,8 +102,31 @@ def joinFactors(factors: List[Factor]):
 
 
     "*** YOUR CODE HERE ***"
-    raiseNotDefined()
+    variableDomainsSet = {}
+    conditionedVariablesSet = set()
+    unconditionedVariablesSet = set()
+    for factor in factors:
+        variableDomainsSet.update(factor.variableDomainsDict())
+        for v in factor.conditionedVariables():
+            conditionedVariablesSet.add(v)
+        for v in factor.unconditionedVariables():
+            unconditionedVariablesSet.add(v)
+    
+    overlapElements = conditionedVariablesSet.intersection(unconditionedVariablesSet)
+    for element in overlapElements:
+        conditionedVariablesSet.remove(element)
+    joinFactor = Factor(list(unconditionedVariablesSet), list(conditionedVariablesSet), variableDomainsSet)
+
+    variableDomainsDict = joinFactor.getAllPossibleAssignmentDicts()
+    for domain in variableDomainsDict:
+        value = 1
+        for factor in factors:
+            value = value * factor.getProbability(domain)
+        joinFactor.setProbability(domain, value)
+
     "*** END YOUR CODE HERE ***"
+
+    return joinFactor
 
 ########### ########### ###########
 ########### QUESTION 3  ###########
@@ -153,8 +176,26 @@ def eliminateWithCallTracking(callTrackingList=None):
                     "unconditionedVariables: " + str(factor.unconditionedVariables()))
 
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        unconditionedVariablesSet = factor.unconditionedVariables()
+        conditionedVariablesSet = factor.conditionedVariables()
+        variableDomainsDict = factor.variableDomainsDict()
+
+        unconditionedVariablesSet.remove(eliminationVariable)
+        eliminateFactor = Factor(list(unconditionedVariablesSet), list(conditionedVariablesSet), variableDomainsDict)
+
+        eliminateDomain = variableDomainsDict[eliminationVariable]
+        newAllPossibleAssignmentDicts = eliminateFactor.getAllPossibleAssignmentDicts()
+        for domain in newAllPossibleAssignmentDicts:
+            value = 0
+            temp = domain.copy()
+            for eli in eliminateDomain:
+                temp.update({eliminationVariable: eli})
+                value = value + factor.getProbability(temp)
+            eliminateFactor.setProbability(domain, value)
+
         "*** END YOUR CODE HERE ***"
+
+        return eliminateFactor
 
     return eliminate
 
